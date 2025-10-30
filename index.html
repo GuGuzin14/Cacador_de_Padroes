@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>🎨 Caçador de Padrões</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Tela de Início -->
+  <div id="telaInicio">
+    <h1>🎨 Caçador de Padrões</h1>
+    <p class="subtitulo">Descubra os padrões de cores e desafie sua mente!</p>
+    
+    <div class="menu-principal">
+      <button class="btn-menu" onclick="iniciarJogo()">▶️ Iniciar Jogo</button>
+      <button class="btn-menu" onclick="abrirConfiguracoes()">⚙️ Configurações</button>
+      <button class="btn-menu" onclick="abrirManual()">📖 Como Jogar</button>
+      <button class="btn-menu btn-som" id="btnSom" onclick="alternarSom()">🔊 Som: ON</button>
+    </div>
+  </div>
+
+  <!-- Modal de Configurações -->
+  <div id="modalConfiguracoes" class="modal">
+    <div class="modal-conteudo">
+      <span class="fechar" onclick="fecharConfiguracoes()">&times;</span>
+      <h2>⚙️ Configurações</h2>
+      
+      <div class="config-secao">
+        <h3>Modo de Acessibilidade</h3>
+        <p>Selecione o modo adequado para daltonismo:</p>
+        
+        <label class="radio-label">
+          <input type="radio" name="daltonismo" value="normal" checked onchange="aplicarModoCor(this.value)">
+          Normal (sem filtro)
+        </label>
+        
+        <label class="radio-label">
+          <input type="radio" name="daltonismo" value="protanopia" onchange="aplicarModoCor(this.value)">
+          Protanopia (dificuldade com vermelho)
+        </label>
+        
+        <label class="radio-label">
+          <input type="radio" name="daltonismo" value="deuteranopia" onchange="aplicarModoCor(this.value)">
+          Deuteranopia (dificuldade com verde)
+        </label>
+        
+        <label class="radio-label">
+          <input type="radio" name="daltonismo" value="tritanopia" onchange="aplicarModoCor(this.value)">
+          Tritanopia (dificuldade com azul)
+        </label>
+      </div>
+      
+      <button class="btn-menu" onclick="fecharConfiguracoes()">Salvar</button>
+    </div>
+  </div>
+
+  <!-- Modal de Manual -->
+  <div id="modalManual" class="modal">
+    <div class="modal-conteudo">
+      <span class="fechar" onclick="fecharManual()">&times;</span>
+      <h2>📖 Como Jogar</h2>
+      
+      <div class="manual-texto">
+        <h3>🎯 Objetivo</h3>
+        <p>Identifique o padrão na sequência de cores e escolha qual cor vem a seguir!</p>
+        
+        <h3>🎮 Como Funciona</h3>
+        <ul>
+          <li>Observe atentamente a sequência de blocos coloridos</li>
+          <li>Identifique o padrão de repetição das cores</li>
+          <li>Clique na cor que você acha que vem a seguir</li>
+          <li>Ganhe pontos por acertar, perca por errar</li>
+        </ul>
+        
+        <h3>📊 Níveis</h3>
+        <ul>
+          <li><strong>Nível 1 (Fácil):</strong> 2 cores, 5-9 blocos, 3 opções</li>
+          <li><strong>Nível 2 (Médio):</strong> 3 cores, 7-13 blocos, 4 opções (5+ pontos)</li>
+          <li><strong>Nível 3 (Difícil):</strong> 4 cores, 9-15 blocos, 5 opções (10+ pontos)</li>
+        </ul>
+        
+        <h3>⚡ Mecânica Rápida</h3>
+        <p>O jogo avança automaticamente após sua escolha! Seja rápido e preciso!</p>
+        
+        <h3>⏱️ Cronômetro</h3>
+        <p>Você tem 60 segundos por nível! O tempo é resetado quando você avança de nível.</p>
+        
+        <h3>🔊 Sons e Efeitos</h3>
+        <p>O jogo possui efeitos sonoros para acertos, erros e mudanças de nível. Você pode ativar/desativar no menu principal!</p>
+        
+        <h3>♿ Acessibilidade</h3>
+        <p>Use as configurações para ativar modos especiais para daltonismo!</p>
+      </div>
+      
+      <button class="btn-menu" onclick="fecharManual()">Entendi!</button>
+    </div>
+  </div>
+
+  <!-- Área do Jogo -->
+  <div id="areaJogo" style="display: none;">
+
+    <div id="nivel">Nível: 1 (Fácil)</div>
+    <div id="cronometro">⏱️ Tempo: 60s</div>
+    <div id="notificacao" class="notificacao-nivel"></div>
+    <div id="sequencia"></div>
+    <div id="opcoes"></div>
+
+    <div id="feedback"></div>
+    <div id="pontos">Pontos: 0</div>
+
+    <button class="btn-voltar" onclick="voltarMenu()">🏠 Voltar ao Menu</button>
+  </div>
+
+  <!-- Modal de Game Over -->
+  <div id="modalGameOver" class="modal">
+    <div class="modal-conteudo modal-gameover">
+      <h2 id="tituloGameOver">⏰ Tempo Esgotado!</h2>
+      <div class="gameover-stats">
+        <p class="stat-item">🎯 <strong>Pontuação Final:</strong> <span id="pontosFinal">0</span> pontos</p>
+        <p class="stat-item">📊 <strong>Nível Alcançado:</strong> <span id="nivelFinal">1</span></p>
+      </div>
+      <p class="gameover-mensagem">🎮 Tente novamente e supere seu recorde!</p>
+      <button class="btn-menu btn-gameover" onclick="fecharGameOver()">Voltar ao Menu</button>
+    </div>
+  </div>
+
+  <script>
+    const cores = ["red", "yellow", "blue", "green", "orange", "purple", "pink"];
+    let coresAtuais = {...cores};
+    let modoCor = "normal";
+    let padrao = [];
+    let proximaCor = "";
+    let pontos = 0;
+    let nivel = 1;
+    let tempoRestante = 60;
+    let intervaloTempo = null;
+    let jogoAtivo = false;
+    let somAtivado = true;
+    let musicaAtivada = false;
+
+    // Contexto de áudio
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Funções de Som
+    function tocarSomAcerto() {
+      if (!somAtivado) return;
+      
+      const oscilador = audioContext.createOscillator();
+      const ganho = audioContext.createGain();
+      
+      oscilador.connect(ganho);
+      ganho.connect(audioContext.destination);
+      
+      // Som ascendente agradável (sucesso)
+      oscilador.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+      oscilador.frequency.exponentialRampToValueAtTime(783.99, audioContext.currentTime + 0.1); // G5
+      
+      oscilador.type = 'sine';
+      ganho.gain.setValueAtTime(0.3, audioContext.currentTime);
+      ganho.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscilador.start(audioContext.currentTime);
+      oscilador.stop(audioContext.currentTime + 0.3);
+    }
+
+    function tocarSomErro() {
+      if (!somAtivado) return;
+      
+      const oscilador = audioContext.createOscillator();
+      const ganho = audioContext.createGain();
+      
+      oscilador.connect(ganho);
+      ganho.connect(audioContext.destination);
+      
+      // Som descendente (erro)
+      oscilador.frequency.setValueAtTime(300, audioContext.currentTime);
+      oscilador.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+      
+      oscilador.type = 'sawtooth';
+      ganho.gain.setValueAtTime(0.2, audioContext.currentTime);
+      ganho.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      
+      oscilador.start(audioContext.currentTime);
+      oscilador.stop(audioContext.currentTime + 0.2);
+    }
+
+    function tocarSomNivel() {
+      if (!somAtivado) return;
+      
+      // Melodia de celebração
+      const notas = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      
+      notas.forEach((frequencia, index) => {
+        const oscilador = audioContext.createOscillator();
+        const ganho = audioContext.createGain();
+        
+        oscilador.connect(ganho);
+        ganho.connect(audioContext.destination);
+        
+        oscilador.frequency.setValueAtTime(frequencia, audioContext.currentTime + index * 0.15);
+        oscilador.type = 'triangle';
+        
+        ganho.gain.setValueAtTime(0.3, audioContext.currentTime + index * 0.15);
+        ganho.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + index * 0.15 + 0.3);
+        
+        oscilador.start(audioContext.currentTime + index * 0.15);
+        oscilador.stop(audioContext.currentTime + index * 0.15 + 0.3);
+      });
+    }
+
+    function tocarSomClick() {
+      if (!somAtivado) return;
+      
+      const oscilador = audioContext.createOscillator();
+      const ganho = audioContext.createGain();
+      
+      oscilador.connect(ganho);
+      ganho.connect(audioContext.destination);
+      
+      oscilador.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscilador.type = 'square';
+      
+      ganho.gain.setValueAtTime(0.1, audioContext.currentTime);
+      ganho.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+      
+      oscilador.start(audioContext.currentTime);
+      oscilador.stop(audioContext.currentTime + 0.05);
+    }
+
+    function tocarSomGameOver() {
+      if (!somAtivado) return;
+      
+      // Som de game over dramático
+      const notas = [392, 370, 349, 330, 294]; // G, F#, F, E, D
+      
+      notas.forEach((frequencia, index) => {
+        const oscilador = audioContext.createOscillator();
+        const ganho = audioContext.createGain();
+        
+        oscilador.connect(ganho);
+        ganho.connect(audioContext.destination);
+        
+        oscilador.frequency.setValueAtTime(frequencia, audioContext.currentTime + index * 0.2);
+        oscilador.type = 'sine';
+        
+        ganho.gain.setValueAtTime(0.3, audioContext.currentTime + index * 0.2);
+        ganho.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + index * 0.2 + 0.4);
+        
+        oscilador.start(audioContext.currentTime + index * 0.2);
+        oscilador.stop(audioContext.currentTime + index * 0.2 + 0.4);
+      });
+    }
+
+    function alternarSom() {
+      somAtivado = !somAtivado;
+      const botao = document.getElementById("btnSom");
+      botao.textContent = somAtivado ? "🔊 Som: ON" : "🔇 Som: OFF";
+      tocarSomClick();
+    }
+
+    // Paletas de cores para diferentes tipos de daltonismo
+    const paletasCores = {
+      normal: {
+        red: "#FF0000",
+        yellow: "#FFFF00",
+        blue: "#0000FF",
+        green: "#00FF00",
+        orange: "#FF8C00",
+        purple: "#800080",
+        pink: "#FF69B4"
+      },
+      protanopia: {
+        red: "#C4A000",
+        yellow: "#FFFF00",
+        blue: "#0066CC",
+        green: "#00A896",
+        orange: "#E69F00",
+        purple: "#5E3C99",
+        pink: "#CC99CC"
+      },
+      deuteranopia: {
+        red: "#B87333",
+        yellow: "#FFD700",
+        blue: "#0072B2",
+        green: "#009E73",
+        orange: "#E69F00",
+        purple: "#6A4C93",
+        pink: "#D891D8"
+      },
+      tritanopia: {
+        red: "#CC0033",
+        yellow: "#FFCCCC",
+        blue: "#00CED1",
+        green: "#006666",
+        orange: "#FF6B6B",
+        purple: "#CC0066",
+        pink: "#FF99CC"
+      }
+    };
+
+    // Configurações de dificuldade por nível
+    function getConfigNivel(nivel) {
+      switch(nivel) {
+        case 1: // Fácil
+          return { 
+            numCores: 2,      // 2 cores diferentes
+            minBlocos: 5,     // mínimo de blocos (ímpar para 2 cores)
+            maxBlocos: 9,     // máximo de blocos
+            numOpcoes: 3      // 3 opções para escolher
+          };
+        case 2: // Médio
+          return { 
+            numCores: 5,      // 5 cores diferentes
+            minBlocos: 7,     // mínimo de blocos (não múltiplo de 3)
+            maxBlocos: 13,    // máximo de blocos
+            numOpcoes: 5      // 5 opções para escolher
+          };
+        case 3: // Difícil
+          return { 
+            numCores: 7,      // 7 cores diferentes
+            minBlocos: 9,     // mínimo de blocos (não múltiplo de 4)
+            maxBlocos: 15,    // máximo de blocos
+            numOpcoes: 7      // 7 opções para escolher
+          };
+        default:
+          return { numCores: 2, minBlocos: 5, maxBlocos: 9, numOpcoes: 3 };
+      }
+    }
+
+    // Funções do Menu
+    function iniciarJogo() {
+      document.getElementById("telaInicio").style.display = "none";
+      document.getElementById("areaJogo").style.display = "flex";
+      jogoAtivo = true;
+      iniciarCronometro();
+      gerarPadrao();
+      tocarSomClick();
+    }
+
+    function voltarMenu() {
+      document.getElementById("areaJogo").style.display = "none";
+      document.getElementById("telaInicio").style.display = "flex";
+      pararCronometro();
+      resetarJogo();
+      tocarSomClick();
+    }
+
+    function resetarJogo() {
+      pontos = 0;
+      nivel = 1;
+      tempoRestante = 60;
+      jogoAtivo = false;
+      document.getElementById("pontos").textContent = "Pontos: 0";
+      document.getElementById("nivel").textContent = "Nível: 1 (Fácil)";
+      document.getElementById("cronometro").textContent = "⏱️ Tempo: 60s";
+      document.getElementById("feedback").textContent = "";
+    }
+
+    // Funções do Cronômetro
+    function iniciarCronometro() {
+      pararCronometro();
+      tempoRestante = 60;
+      atualizarCronometro();
+      
+      intervaloTempo = setInterval(() => {
+        if (jogoAtivo) {
+          tempoRestante--;
+          atualizarCronometro();
+          
+          if (tempoRestante <= 0) {
+            fimDeJogo();
+          }
+        }
+      }, 1000);
+    }
+
+    function pararCronometro() {
+      if (intervaloTempo) {
+        clearInterval(intervaloTempo);
+        intervaloTempo = null;
+      }
+    }
+
+    function atualizarCronometro() {
+      const cronometroElement = document.getElementById("cronometro");
+      cronometroElement.textContent = `⏱️ Tempo: ${tempoRestante}s`;
+      
+      // Mudar cor baseado no tempo restante
+      if (tempoRestante <= 10) {
+        cronometroElement.style.color = "#dc3545"; // Vermelho
+        cronometroElement.style.fontWeight = "bold";
+      } else if (tempoRestante <= 30) {
+        cronometroElement.style.color = "#ff8c00"; // Laranja
+      } else {
+        cronometroElement.style.color = "#ffffff"; // Verde
+      }
+    }
+
+    function fimDeJogo() {
+      jogoAtivo = false;
+      pararCronometro();
+      
+      // Desabilitar botões
+      const botoesOpcoes = document.querySelectorAll(".botao-cor");
+      botoesOpcoes.forEach(btn => btn.style.pointerEvents = "none");
+      
+      tocarSomGameOver();
+      
+      setTimeout(() => {
+        mostrarModalGameOver();
+      }, 1000);
+    }
+
+    function mostrarModalGameOver() {
+      document.getElementById("pontosFinal").textContent = pontos;
+      document.getElementById("nivelFinal").textContent = nivel;
+      document.getElementById("modalGameOver").style.display = "flex";
+    }
+
+    function fecharGameOver() {
+      document.getElementById("modalGameOver").style.display = "none";
+      tocarSomClick();
+      voltarMenu();
+    }
+
+    function abrirConfiguracoes() {
+      document.getElementById("modalConfiguracoes").style.display = "flex";
+      tocarSomClick();
+    }
+
+    function fecharConfiguracoes() {
+      document.getElementById("modalConfiguracoes").style.display = "none";
+      tocarSomClick();
+    }
+
+    function abrirManual() {
+      document.getElementById("modalManual").style.display = "flex";
+      tocarSomClick();
+    }
+
+    function fecharManual() {
+      document.getElementById("modalManual").style.display = "none";
+      tocarSomClick();
+    }
+
+    function aplicarModoCor(modo) {
+      modoCor = modo;
+      const paleta = paletasCores[modo];
+      
+      // Atualizar cores no CSS usando variáveis CSS
+      document.documentElement.style.setProperty('--cor-red', paleta.red);
+      document.documentElement.style.setProperty('--cor-yellow', paleta.yellow);
+      document.documentElement.style.setProperty('--cor-blue', paleta.blue);
+      document.documentElement.style.setProperty('--cor-green', paleta.green);
+      document.documentElement.style.setProperty('--cor-orange', paleta.orange);
+      document.documentElement.style.setProperty('--cor-purple', paleta.purple);
+      document.documentElement.style.setProperty('--cor-pink', paleta.pink);
+    }
+
+    // Inicializar cores normais
+    aplicarModoCor("normal");
+
+    function gerarPadrao() {
+      padrao = [];
+      const config = getConfigNivel(nivel);
+      const coresEscolhidas = [];
+
+      // escolher cores diferentes baseado no nível
+      while (coresEscolhidas.length < config.numCores) {
+        const cor = cores[Math.floor(Math.random() * cores.length)];
+        if (!coresEscolhidas.includes(cor)) coresEscolhidas.push(cor);
+      }
+
+      // Número aleatório de blocos para evitar que o padrão sempre "feche"
+      const numBlocos = Math.floor(Math.random() * (config.maxBlocos - config.minBlocos + 1)) + config.minBlocos;
+      
+      // Gerar a sequência de blocos
+      for (let i = 0; i < numBlocos; i++) {
+        padrao.push(coresEscolhidas[i % config.numCores]);
+      }
+
+      // A próxima cor continua o padrão
+      proximaCor = coresEscolhidas[numBlocos % config.numCores];
+      
+      mostrarPadrao();
+      mostrarOpcoes();
+    }
+
+    function mostrarPadrao() {
+      const container = document.getElementById("sequencia");
+      container.innerHTML = "";
+      padrao.forEach(cor => {
+        const bloco = document.createElement("div");
+        bloco.classList.add("bloco");
+        bloco.setAttribute("data-cor", cor);
+        container.appendChild(bloco);
+      });
+    }
+
+    function mostrarOpcoes() {
+      const opcoesDiv = document.getElementById("opcoes");
+      opcoesDiv.innerHTML = "";
+      const config = getConfigNivel(nivel);
+
+      const opcoesAleatorias = [...cores]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, config.numOpcoes);
+
+      if (!opcoesAleatorias.includes(proximaCor)) {
+        opcoesAleatorias[Math.floor(Math.random() * config.numOpcoes)] = proximaCor;
+      }
+
+      opcoesAleatorias.forEach(cor => {
+        const btn = document.createElement("div");
+        btn.classList.add("botao-cor");
+        btn.setAttribute("data-cor", cor);
+        btn.addEventListener("click", () => verificar(cor));
+        opcoesDiv.appendChild(btn);
+      });
+    }
+
+    function verificar(cor) {
+      if (!jogoAtivo) return; // Ignorar cliques se o jogo não estiver ativo
+      
+      const feedback = document.getElementById("feedback");
+      
+      // Desabilitar botões temporariamente
+      const botoesOpcoes = document.querySelectorAll(".botao-cor");
+      botoesOpcoes.forEach(btn => btn.style.pointerEvents = "none");
+      
+      if (cor === proximaCor) {
+        feedback.style.color = "green";
+        feedback.textContent = "✅ Muito bem! Você descobriu o padrão!";
+        pontos++;
+        tocarSomAcerto();
+      } else {
+        feedback.style.color = "red";
+        feedback.textContent = "❌ Ops! Essa cor não segue o padrão.";
+        if (pontos > 0) pontos--;
+        tocarSomErro();
+      }
+
+      document.getElementById("pontos").textContent = "Pontos: " + pontos;
+      
+      // Avançar automaticamente após 1.5 segundos
+      setTimeout(() => {
+        if (jogoAtivo) {
+          novaRodada();
+        }
+      }, 1500);
+    }
+
+    function novaRodada() {
+      if (!jogoAtivo) return;
+      
+      document.getElementById("feedback").textContent = "";
+
+      // Verificar mudança de nível
+      if (pontos >= 5 && nivel === 1) {
+        mudarNivel(2, "Nível: 2 (Médio)", "🎉 Parabéns! Nível MÉDIO desbloqueado!", "Agora são 3 cores com sequências variáveis!");
+        return;
+      } else if (pontos >= 10 && nivel === 2) {
+        mudarNivel(3, "Nível: 3 (Difícil)", "� Incrível! Nível DIFÍCIL desbloqueado!", "Agora são 4 cores com sequências mais longas!");
+        return;
+      }
+
+      // Se não mudou de nível, apenas gerar novo padrão
+      gerarPadrao();
+    }
+
+    function mudarNivel(novoNivel, textoNivel, titulo, descricao) {
+      // Parar o jogo temporariamente
+      jogoAtivo = false;
+      pararCronometro();
+      
+      // Tocar som de celebração
+      tocarSomNivel();
+      
+      // Desabilitar botões
+      const botoesOpcoes = document.querySelectorAll(".botao-cor");
+      botoesOpcoes.forEach(btn => btn.style.pointerEvents = "none");
+      
+      // Atualizar nível
+      nivel = novoNivel;
+      document.getElementById("nivel").textContent = textoNivel;
+      
+      // Mostrar notificação visual
+      const notificacao = document.getElementById("notificacao");
+      notificacao.innerHTML = `
+        <div class="notificacao-conteudo">
+          <h2>${titulo}</h2>
+          <p>${descricao}</p>
+          <p class="notificacao-tempo">⏱️ Tempo resetado para 60 segundos</p>
+        </div>
+      `;
+      notificacao.style.display = "flex";
+      
+      // Após 3 segundos, continuar o jogo
+      setTimeout(() => {
+        notificacao.style.display = "none";
+        tempoRestante = 60;
+        jogoAtivo = true;
+        iniciarCronometro();
+        gerarPadrao();
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
