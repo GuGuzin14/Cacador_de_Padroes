@@ -12,52 +12,84 @@
     <p class="subtitulo">Descubra os padrões de cores e desafie sua mente!</p>
     
     <div class="menu-principal">
-      <button class="btn-menu" onclick="iniciarJogo()">▶️ Iniciar Jogo</button>
-      <button class="btn-menu" onclick="abrirConfiguracoes()">⚙️ Configurações</button>
-      <button class="btn-menu" onclick="abrirManual()">📖 Como Jogar</button>
-      <button class="btn-menu btn-som" id="btnSom" onclick="alternarSom()">🔊 Som: ON</button>
+      <button class="btn-menu" onclick="iniciarJogo()" tabindex="1" onfocus="narrarTexto('Iniciar Jogo')">▶️ Iniciar Jogo</button>
+      <button class="btn-menu" onclick="abrirHistorico()" tabindex="2" onfocus="narrarTexto('Histórico de Partidas')">📊 Histórico de Partidas</button>
+      <button class="btn-menu" onclick="abrirConfiguracoes()" tabindex="3" onfocus="narrarTexto('Configurações')">⚙️ Configurações</button>
+      <button class="btn-menu" onclick="abrirManual()" tabindex="4" onfocus="narrarTexto('Como Jogar')">📖 Como Jogar</button>
+      <button class="btn-menu btn-som" id="btnSom" onclick="alternarSom()" tabindex="5" onfocus="narrarTexto('Alternar Som')">🔊 Som: ON</button>
     </div>
   </div>
 
   <!-- Modal de Configurações -->
   <div id="modalConfiguracoes" class="modal">
     <div class="modal-conteudo">
-      <span class="fechar" onclick="fecharConfiguracoes()">&times;</span>
+      <span class="fechar" onclick="fecharConfiguracoes()" tabindex="0" onfocus="narrarTexto('Fechar configurações')">&times;</span>
       <h2>⚙️ Configurações</h2>
       
       <div class="config-secao">
-        <h3>Modo de Acessibilidade</h3>
+        <h3>Modo de Acessibilidade Visual</h3>
         <p>Selecione o modo adequado para daltonismo:</p>
         
         <label class="radio-label">
-          <input type="radio" name="daltonismo" value="normal" checked onchange="aplicarModoCor(this.value)">
+          <input type="radio" name="daltonismo" value="normal" checked onchange="aplicarModoCor(this.value)" onfocus="narrarTexto('Normal, sem filtro')">
           Normal (sem filtro)
         </label>
         
         <label class="radio-label">
-          <input type="radio" name="daltonismo" value="protanopia" onchange="aplicarModoCor(this.value)">
+          <input type="radio" name="daltonismo" value="protanopia" onchange="aplicarModoCor(this.value)" onfocus="narrarTexto('Protanopia, dificuldade com vermelho')">
           Protanopia (dificuldade com vermelho)
         </label>
         
         <label class="radio-label">
-          <input type="radio" name="daltonismo" value="deuteranopia" onchange="aplicarModoCor(this.value)">
+          <input type="radio" name="daltonismo" value="deuteranopia" onchange="aplicarModoCor(this.value)" onfocus="narrarTexto('Deuteranopia, dificuldade com verde')">
           Deuteranopia (dificuldade com verde)
         </label>
         
         <label class="radio-label">
-          <input type="radio" name="daltonismo" value="tritanopia" onchange="aplicarModoCor(this.value)">
+          <input type="radio" name="daltonismo" value="tritanopia" onchange="aplicarModoCor(this.value)" onfocus="narrarTexto('Tritanopia, dificuldade com azul')">
           Tritanopia (dificuldade com azul)
         </label>
       </div>
+
+      <div class="config-secao">
+        <h3>♿ Modo para Deficiência Visual</h3>
+        <p>Ativa navegação por teclado e narração por voz. O cronômetro será desabilitado neste modo.</p>
+        
+        <label class="checkbox-label">
+          <input type="checkbox" id="checkboxDeficienciaVisual" onchange="alternarModoDeficienciaVisual()" onfocus="narrarTexto('Ativar modo de deficiência visual')">
+          Ativar modo de deficiência visual
+        </label>
+        
+        <p class="info-modo-visual" id="infoModoVisual" style="display: none;">
+          ✓ Use <strong>Tab</strong> para navegar entre as opções<br>
+          ✓ Use <strong>Enter</strong> para selecionar<br>
+          ✓ A voz narrará cada opção e a sequência de cores
+        </p>
+      </div>
       
-      <button class="btn-menu" onclick="fecharConfiguracoes()">Salvar</button>
+      <button class="btn-menu" onclick="fecharConfiguracoes()" tabindex="0" onfocus="narrarTexto('Salvar configurações')">Salvar</button>
+    </div>
+  </div>
+
+  <!-- Modal de Histórico -->
+  <div id="modalHistorico" class="modal">
+    <div class="modal-conteudo">
+      <span class="fechar" onclick="fecharHistorico()" tabindex="0" onfocus="narrarTexto('Fechar histórico')">&times;</span>
+      <h2>📊 Histórico de Partidas</h2>
+      
+      <div id="listaHistorico" class="historico-lista">
+        <!-- Será preenchido dinamicamente -->
+      </div>
+      
+      <button class="btn-menu btn-limpar" onclick="limparHistorico()" tabindex="0" onfocus="narrarTexto('Limpar Histórico')">🗑️ Limpar Histórico</button>
+      <button class="btn-menu" onclick="fecharHistorico()" tabindex="0" onfocus="narrarTexto('Fechar')">Fechar</button>
     </div>
   </div>
 
   <!-- Modal de Manual -->
   <div id="modalManual" class="modal">
     <div class="modal-conteudo">
-      <span class="fechar" onclick="fecharManual()">&times;</span>
+      <span class="fechar" onclick="fecharManual()" tabindex="0" onfocus="narrarTexto('Fechar manual')">&times;</span>
       <h2>📖 Como Jogar</h2>
       
       <div class="manual-texto">
@@ -69,14 +101,27 @@
           <li>Observe atentamente a sequência de blocos coloridos</li>
           <li>Identifique o padrão de repetição das cores</li>
           <li>Clique na cor que você acha que vem a seguir</li>
-          <li>Ganhe pontos por acertar, perca por errar</li>
+          <li>Ganhe pontos por acertar!</li>
+          <li><strong>CUIDADO:</strong> Você tem apenas 3 vidas (❤️❤️❤️)</li>
+          <li>Cada erro faz você perder uma vida</li>
+          <li>Se perder todas as vidas, o jogo termina!</li>
         </ul>
         
-        <h3>📊 Níveis</h3>
+        <h3>📊 Níveis e Rodadas</h3>
         <ul>
-          <li><strong>Nível 1 (Fácil):</strong> 2 cores, 5-9 blocos, 3 opções</li>
-          <li><strong>Nível 2 (Médio):</strong> 3 cores, 7-13 blocos, 4 opções (5+ pontos)</li>
-          <li><strong>Nível 3 (Difícil):</strong> 4 cores, 9-15 blocos, 5 opções (10+ pontos)</li>
+          <li><strong>Nível 1 (Fácil):</strong> 2 cores, 5-9 blocos, 3 opções - Complete 7 rodadas para avançar</li>
+          <li><strong>Nível 2 (Médio):</strong> 5 cores, 7-13 blocos, 5 opções - Complete 10 rodadas para avançar</li>
+          <li><strong>Nível 3 (Difícil):</strong> 7 cores, 9-15 blocos, 7 opções - Complete 10 rodadas para vencer!</li>
+        </ul>
+        
+        <h3>🏆 Pontuação</h3>
+        <ul>
+          <li>Cada acerto = 1 ponto</li>
+          <li>Nível 1: ~7 pontos (se não errar)</li>
+          <li>Nível 2: ~10 pontos (se não errar)</li>
+          <li>Nível 3: ~10 pontos (se não errar)</li>
+          <li><strong>Pontuação máxima: ~27 pontos completando todos os níveis!</strong></li>
+          <li>Seu histórico de partidas é salvo automaticamente</li>
         </ul>
         
         <h3>⚡ Mecânica Rápida</h3>
@@ -92,7 +137,7 @@
         <p>Use as configurações para ativar modos especiais para daltonismo!</p>
       </div>
       
-      <button class="btn-menu" onclick="fecharManual()">Entendi!</button>
+      <button class="btn-menu" onclick="fecharManual()" tabindex="0" onfocus="narrarTexto('Entendi, fechar manual')">Entendi!</button>
     </div>
   </div>
 
@@ -100,6 +145,7 @@
   <div id="areaJogo" style="display: none;">
 
     <div id="nivel">Nível: 1 (Fácil)</div>
+    <div id="vidas">❤️ ❤️ ❤️</div>
     <div id="cronometro">⏱️ Tempo: 60s</div>
     <div id="notificacao" class="notificacao-nivel"></div>
     <div id="sequencia"></div>
@@ -108,7 +154,7 @@
     <div id="feedback"></div>
     <div id="pontos">Pontos: 0</div>
 
-    <button class="btn-voltar" onclick="voltarMenu()">🏠 Voltar ao Menu</button>
+    <button class="btn-voltar" onclick="voltarMenu()" tabindex="20" onfocus="narrarTexto('Voltar ao Menu')">🏠 Voltar ao Menu</button>
   </div>
 
   <!-- Modal de Game Over -->
@@ -120,7 +166,7 @@
         <p class="stat-item">📊 <strong>Nível Alcançado:</strong> <span id="nivelFinal">1</span></p>
       </div>
       <p class="gameover-mensagem">🎮 Tente novamente e supere seu recorde!</p>
-      <button class="btn-menu btn-gameover" onclick="fecharGameOver()">Voltar ao Menu</button>
+      <button class="btn-menu btn-gameover" onclick="fecharGameOver()" tabindex="0" onfocus="narrarTexto('Voltar ao Menu Principal')">Voltar ao Menu</button>
     </div>
   </div>
 
@@ -130,16 +176,34 @@
     let modoCor = "normal";
     let padrao = [];
     let proximaCor = "";
-    let pontos = 0;
-    let nivel = 1;
-    let tempoRestante = 60;
+  let pontos = 0;
+  let nivel = 1;
+  let vidas = 3;
+  let rodadasPorNivel = 0; // Contador de rodadas no nível atual
+  // Histórico de partidas (carrega do localStorage se existir)
+  let historicoPartidas = JSON.parse(localStorage.getItem('historicoPartidas')) || [];
+  // Acumulador de pontuação por níveis (cada nível concluído = +33)
+  let levelAccum = 0;
+  let tempoRestante = 60;
     let intervaloTempo = null;
     let jogoAtivo = false;
     let somAtivado = true;
     let musicaAtivada = false;
+    let modoDeficienciaVisual = false; // Modo de acessibilidade para deficientes visuais
 
     // Contexto de áudio
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Mapeamento de cores para português
+    const coresEmPortugues = {
+      red: "vermelho",
+      yellow: "amarelo",
+      blue: "azul",
+      green: "verde",
+      orange: "laranja",
+      purple: "roxo",
+      pink: "rosa"
+    };
 
     // Funções de Som
     function tocarSomAcerto() {
@@ -258,6 +322,103 @@
       tocarSomClick();
     }
 
+    // ===== FUNÇÕES DE NARRAÇÃO POR VOZ (Web Speech API) =====
+    
+    function narrarTexto(texto, callback) {
+      if (!modoDeficienciaVisual) return;
+      
+      // Cancelar qualquer narração em andamento
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(texto);
+      utterance.lang = 'pt-BR';
+      utterance.rate = 0.9; // Velocidade de fala
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      if (callback) {
+        utterance.onend = callback;
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function narrarCor(cor) {
+      if (!modoDeficienciaVisual) return;
+      const corPortugues = coresEmPortugues[cor] || cor;
+      narrarTexto(corPortugues);
+    }
+
+    function narrarSequencia(sequencia) {
+      if (!modoDeficienciaVisual) return;
+      
+      const coresNomes = sequencia.map(cor => coresEmPortugues[cor] || cor);
+      const texto = "Sequência de cores: " + coresNomes.join(", ") + ". Agora escolha a próxima cor.";
+      
+      // Após terminar a narração, habilitar os botões
+      narrarTexto(texto, habilitarBotoesResposta);
+    }
+
+    function habilitarBotoesResposta() {
+      if (!modoDeficienciaVisual) return;
+      
+      const botoesOpcoes = document.querySelectorAll(".botao-cor");
+      botoesOpcoes.forEach((btn, index) => {
+        btn.setAttribute("tabindex", 10 + index);
+        btn.style.pointerEvents = "auto";
+        btn.classList.remove("botao-desabilitado");
+      });
+      
+      // Habilitar também o botão "Voltar ao Menu"
+      const btnVoltar = document.querySelector('.btn-voltar');
+      if (btnVoltar) {
+        btnVoltar.setAttribute("tabindex", "20");
+        btnVoltar.style.pointerEvents = "auto";
+        btnVoltar.style.opacity = "1";
+      }
+      
+      // Focar no primeiro botão
+      setTimeout(() => {
+        const primeiroBotao = document.querySelector('.botao-cor');
+        if (primeiroBotao) primeiroBotao.focus();
+      }, 100);
+    }
+
+    function alternarModoDeficienciaVisual() {
+      const checkbox = document.getElementById("checkboxDeficienciaVisual");
+      const info = document.getElementById("infoModoVisual");
+      
+      modoDeficienciaVisual = checkbox.checked;
+      info.style.display = modoDeficienciaVisual ? "block" : "none";
+      
+      // Salvar preferência no localStorage
+      localStorage.setItem('modoDeficienciaVisual', modoDeficienciaVisual);
+      
+      if (modoDeficienciaVisual) {
+        narrarTexto("Modo de deficiência visual ativado. Use Tab para navegar e Enter para selecionar.");
+      } else {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    // Carregar preferência salva ao iniciar
+    function carregarPreferenciasAcessibilidade() {
+      const preferenciaSalva = localStorage.getItem('modoDeficienciaVisual');
+      if (preferenciaSalva === 'true') {
+        modoDeficienciaVisual = true;
+        const checkbox = document.getElementById("checkboxDeficienciaVisual");
+        const info = document.getElementById("infoModoVisual");
+        if (checkbox) checkbox.checked = true;
+        if (info) info.style.display = "block";
+      }
+    }
+
+    // Carregar preferências quando a página carregar
+    window.addEventListener('DOMContentLoaded', () => {
+      carregarHistorico();
+      carregarPreferenciasAcessibilidade();
+    });
+
     // Paletas de cores para diferentes tipos de daltonismo
     const paletasCores = {
       normal: {
@@ -306,24 +467,27 @@
             numCores: 2,      // 2 cores diferentes
             minBlocos: 5,     // mínimo de blocos (ímpar para 2 cores)
             maxBlocos: 9,     // máximo de blocos
-            numOpcoes: 3      // 3 opções para escolher
+            numOpcoes: 3,     // 3 opções para escolher
+            rodadasNecessarias: 7  // 7 rodadas para passar de nível
           };
         case 2: // Médio
           return { 
             numCores: 5,      // 5 cores diferentes
             minBlocos: 7,     // mínimo de blocos (não múltiplo de 3)
             maxBlocos: 13,    // máximo de blocos
-            numOpcoes: 5      // 5 opções para escolher
+            numOpcoes: 5,     // 5 opções para escolher
+            rodadasNecessarias: 10  // 10 rodadas para passar de nível
           };
         case 3: // Difícil
           return { 
             numCores: 7,      // 7 cores diferentes
             minBlocos: 9,     // mínimo de blocos (não múltiplo de 4)
             maxBlocos: 15,    // máximo de blocos
-            numOpcoes: 7      // 7 opções para escolher
+            numOpcoes: 7,     // 7 opções para escolher
+            rodadasNecessarias: 10  // 10 rodadas para passar de nível
           };
         default:
-          return { numCores: 2, minBlocos: 5, maxBlocos: 9, numOpcoes: 3 };
+          return { numCores: 2, minBlocos: 5, maxBlocos: 9, numOpcoes: 3, rodadasNecessarias: 7 };
       }
     }
 
@@ -332,9 +496,20 @@
       document.getElementById("telaInicio").style.display = "none";
       document.getElementById("areaJogo").style.display = "flex";
       jogoAtivo = true;
+      vidas = 3;
+      rodadasPorNivel = 0;
+      levelAccum = 0; // reiniciar acumulador de níveis ao iniciar uma nova sessão
+      pontos = 0;
+      document.getElementById("pontos").textContent = "Pontos: 0";
+      atualizarVidas();
       iniciarCronometro();
-      gerarPadrao();
       tocarSomClick();
+      
+      if (modoDeficienciaVisual) {
+        narrarTexto("Jogo iniciado. Nível 1, Fácil. Você tem 3 vidas.");
+      }
+      
+      gerarPadrao();
     }
 
     function voltarMenu() {
@@ -343,17 +518,75 @@
       pararCronometro();
       resetarJogo();
       tocarSomClick();
+      
+      if (modoDeficienciaVisual) {
+        setTimeout(() => {
+          narrarTexto("Voltou ao menu principal. Use Tab para navegar entre as opções.");
+        }, 300);
+      }
     }
 
     function resetarJogo() {
       pontos = 0;
       nivel = 1;
+      vidas = 3;
+      rodadasPorNivel = 0;
+      levelAccum = 0;
       tempoRestante = 60;
       jogoAtivo = false;
       document.getElementById("pontos").textContent = "Pontos: 0";
       document.getElementById("nivel").textContent = "Nível: 1 (Fácil)";
       document.getElementById("cronometro").textContent = "⏱️ Tempo: 60s";
       document.getElementById("feedback").textContent = "";
+      atualizarVidas();
+    }
+
+    // Atualizar visualização das vidas
+    function atualizarVidas() {
+      const vidasDiv = document.getElementById("vidas");
+      let vidasTexto = "";
+      
+      for (let i = 0; i < 3; i++) {
+        if (i < vidas) {
+          vidasTexto += "❤️ ";
+        } else {
+          vidasTexto += "🖤 ";
+        }
+      }
+      
+      vidasDiv.textContent = vidasTexto.trim();
+    }
+
+    // Salvar pontuação no histórico. Pode passar um valor override (por exemplo pontuação parcial por níveis)
+    function salvarPontuacao(pontosOverride) {
+      const score = (typeof pontosOverride === 'number') ? pontosOverride : pontos;
+      const dataPartida = new Date().toLocaleString('pt-BR');
+      const partidaInfo = {
+        pontos: score,
+        nivel: nivel,
+        data: dataPartida
+      };
+      
+      historicoPartidas.push(partidaInfo);
+      
+      // Salvar no localStorage para persistência
+      localStorage.setItem('historicoPartidas', JSON.stringify(historicoPartidas));
+      
+      console.log('Partida salva:', partidaInfo);
+      console.log('Histórico completo:', historicoPartidas);
+    }
+
+    // Carregar histórico ao iniciar
+    function carregarHistorico() {
+      const historicoSalvo = localStorage.getItem('historicoPartidas');
+      if (historicoSalvo) {
+        historicoPartidas = JSON.parse(historicoSalvo);
+        console.log('=== HISTÓRICO DE PARTIDAS CARREGADO ===');
+        console.log(`Total de partidas: ${historicoPartidas.length}`);
+        if (historicoPartidas.length > 0) {
+          console.table(historicoPartidas);
+        }
+      }
     }
 
     // Funções do Cronômetro
@@ -361,6 +594,14 @@
       pararCronometro();
       tempoRestante = 60;
       atualizarCronometro();
+      
+      // Se o modo de deficiência visual estiver ativo, não iniciar o cronômetro
+      if (modoDeficienciaVisual) {
+        const cronometroElement = document.getElementById("cronometro");
+        cronometroElement.textContent = "⏱️ Tempo: ∞ (desabilitado no modo visual)";
+        cronometroElement.style.color = "#888";
+        return;
+      }
       
       intervaloTempo = setInterval(() => {
         if (jogoAtivo) {
@@ -396,9 +637,14 @@
       }
     }
 
-    function fimDeJogo() {
+    function fimDeJogo(motivo = "tempo") {
       jogoAtivo = false;
       pararCronometro();
+      
+      // Ao terminar o jogo (por tempo ou por perder vidas), salvar a pontuação parcial baseada em níveis concluídos
+      // Se o jogador não completou nenhum nível, levelAccum será 0
+      pontos = levelAccum;
+      salvarPontuacao(levelAccum);
       
       // Desabilitar botões
       const botoesOpcoes = document.querySelectorAll(".botao-cor");
@@ -406,15 +652,39 @@
       
       tocarSomGameOver();
       
+      // Narrar fim de jogo
+      if (modoDeficienciaVisual) {
+        const mensagem = motivo === "vidas" 
+          ? `Fim de jogo! Você perdeu todas as vidas. Pontuação final: ${pontos} pontos.`
+          : `Tempo esgotado! Fim de jogo. Pontuação final: ${pontos} pontos.`;
+        narrarTexto(mensagem);
+      }
+      
       setTimeout(() => {
-        mostrarModalGameOver();
+        mostrarModalGameOver(motivo);
       }, 1000);
     }
 
-    function mostrarModalGameOver() {
+    function mostrarModalGameOver(motivo = "tempo") {
+      const tituloGameOver = document.getElementById("tituloGameOver");
+      
+      if (motivo === "vidas") {
+        tituloGameOver.textContent = "💔 Sem Vidas!";
+      } else {
+        tituloGameOver.textContent = "⏰ Tempo Esgotado!";
+      }
+      
       document.getElementById("pontosFinal").textContent = pontos;
       document.getElementById("nivelFinal").textContent = nivel;
       document.getElementById("modalGameOver").style.display = "flex";
+      
+      // Narrar informações do game over
+      if (modoDeficienciaVisual) {
+        const mensagemTitulo = motivo === "vidas" ? "Sem vidas" : "Tempo esgotado";
+        setTimeout(() => {
+          narrarTexto(`${mensagemTitulo}. Pontuação final: ${pontos} pontos. Nível alcançado: ${nivel}. Use Tab para navegar.`);
+        }, 500);
+      }
     }
 
     function fecharGameOver() {
@@ -426,6 +696,12 @@
     function abrirConfiguracoes() {
       document.getElementById("modalConfiguracoes").style.display = "flex";
       tocarSomClick();
+      
+      if (modoDeficienciaVisual) {
+        setTimeout(() => {
+          narrarTexto("Configurações abertas. Use Tab para navegar entre as opções.");
+        }, 300);
+      }
     }
 
     function fecharConfiguracoes() {
@@ -436,11 +712,87 @@
     function abrirManual() {
       document.getElementById("modalManual").style.display = "flex";
       tocarSomClick();
+      
+      if (modoDeficienciaVisual) {
+        setTimeout(() => {
+          narrarTexto("Manual de instruções aberto. Use Tab para navegar.");
+        }, 300);
+      }
     }
 
     function fecharManual() {
       document.getElementById("modalManual").style.display = "none";
       tocarSomClick();
+    }
+
+    function abrirHistorico() {
+      const modal = document.getElementById("modalHistorico");
+      const listaDiv = document.getElementById("listaHistorico");
+      
+      if (historicoPartidas.length === 0) {
+        listaDiv.innerHTML = '<p class="sem-historico">Nenhuma partida jogada ainda. Jogue para ver seu histórico!</p>';
+      } else {
+        let html = '<div class="historico-grid">';
+        
+        // Mostrar do mais recente ao mais antigo
+        for (let i = historicoPartidas.length - 1; i >= 0; i--) {
+          const partida = historicoPartidas[i];
+          const nivelTexto = partida.nivel === 1 ? "Fácil" : partida.nivel === 2 ? "Médio" : "Difícil";
+          
+          html += `
+            <div class="historico-item">
+              <div class="historico-header">
+                <span class="historico-numero">#${i + 1}</span>
+                <span class="historico-data">${partida.data}</span>
+              </div>
+              <div class="historico-stats">
+                <div class="stat">
+                  <span class="stat-label">Pontos:</span>
+                  <span class="stat-valor pontos">${partida.pontos}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Nível:</span>
+                  <span class="stat-valor nivel">${nivelTexto}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
+        html += '</div>';
+        listaDiv.innerHTML = html;
+      }
+      
+      modal.style.display = "flex";
+      tocarSomClick();
+      
+      if (modoDeficienciaVisual) {
+        setTimeout(() => {
+          const mensagem = historicoPartidas.length === 0 
+            ? "Histórico de partidas vazio. Nenhuma partida jogada ainda."
+            : `Histórico de partidas. Total de ${historicoPartidas.length} partida${historicoPartidas.length > 1 ? 's' : ''} salva${historicoPartidas.length > 1 ? 's' : ''}. Use Tab para navegar.`;
+          narrarTexto(mensagem);
+        }, 300);
+      }
+    }
+
+    function fecharHistorico() {
+      document.getElementById("modalHistorico").style.display = "none";
+      tocarSomClick();
+    }
+
+    function limparHistorico() {
+      if (confirm("Tem certeza que deseja limpar todo o histórico de partidas?")) {
+        historicoPartidas = [];
+        localStorage.removeItem('historicoPartidas');
+        
+        if (modoDeficienciaVisual) {
+          narrarTexto("Histórico limpo com sucesso.");
+        }
+        
+        abrirHistorico(); // Atualizar a visualização
+        tocarSomClick();
+      }
     }
 
     function aplicarModoCor(modo) {
@@ -484,6 +836,13 @@
       
       mostrarPadrao();
       mostrarOpcoes();
+      
+      // Narrar a sequência se modo visual estiver ativo
+      if (modoDeficienciaVisual) {
+        setTimeout(() => {
+          narrarSequencia(padrao);
+        }, 500);
+      }
     }
 
     function mostrarPadrao() {
@@ -510,13 +869,49 @@
         opcoesAleatorias[Math.floor(Math.random() * config.numOpcoes)] = proximaCor;
       }
 
-      opcoesAleatorias.forEach(cor => {
+      opcoesAleatorias.forEach((cor, index) => {
         const btn = document.createElement("div");
         btn.classList.add("botao-cor");
         btn.setAttribute("data-cor", cor);
+        btn.setAttribute("role", "button");
+        btn.setAttribute("aria-label", coresEmPortugues[cor]);
+        
+        // Se modo visual estiver ativo, desabilitar inicialmente
+        if (modoDeficienciaVisual) {
+          btn.setAttribute("tabindex", "-1"); // Desabilita navegação por Tab
+          btn.style.pointerEvents = "none"; // Desabilita cliques
+          btn.classList.add("botao-desabilitado");
+        } else {
+          btn.setAttribute("tabindex", 10 + index);
+        }
+        
+        // Eventos de clique
         btn.addEventListener("click", () => verificar(cor));
+        
+        // Navegação por teclado
+        btn.addEventListener("focus", () => {
+          narrarCor(cor);
+        });
+        
+        btn.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            verificar(cor);
+          }
+        });
+        
         opcoesDiv.appendChild(btn);
       });
+      
+      // Desabilitar também o botão "Voltar ao Menu" se modo visual estiver ativo
+      if (modoDeficienciaVisual) {
+        const btnVoltar = document.querySelector('.btn-voltar');
+        if (btnVoltar) {
+          btnVoltar.setAttribute("tabindex", "-1");
+          btnVoltar.style.pointerEvents = "none";
+          btnVoltar.style.opacity = "0.5";
+        }
+      }
     }
 
     function verificar(cor) {
@@ -533,11 +928,26 @@
         feedback.textContent = "✅ Muito bem! Você descobriu o padrão!";
         pontos++;
         tocarSomAcerto();
+        narrarTexto("Correto! Muito bem!");
       } else {
         feedback.style.color = "red";
         feedback.textContent = "❌ Ops! Essa cor não segue o padrão.";
-        if (pontos > 0) pontos--;
+        vidas--;
+        atualizarVidas();
         tocarSomErro();
+        narrarTexto("Incorreto. Você perdeu uma vida. Vidas restantes: " + vidas);
+      }
+
+      // Contabilizar a rodada (conte tanto acertos quanto erros como rodadas)
+      rodadasPorNivel++;
+
+      // Se perdeu todas as vidas após esta jogada
+      if (vidas <= 0) {
+        feedback.textContent = "💔 Você perdeu todas as vidas!";
+        setTimeout(() => {
+          fimDeJogo("vidas");
+        }, 2000);
+        return;
       }
 
       document.getElementById("pontos").textContent = "Pontos: " + pontos;
@@ -555,12 +965,18 @@
       
       document.getElementById("feedback").textContent = "";
 
-      // Verificar mudança de nível
-      if (pontos >= 5 && nivel === 1) {
-        mudarNivel(2, "Nível: 2 (Médio)", "🎉 Parabéns! Nível MÉDIO desbloqueado!", "Agora são 3 cores com sequências variáveis!");
+      const config = getConfigNivel(nivel);
+
+      // Verificar mudança de nível baseado nas rodadas completadas
+      if (rodadasPorNivel >= config.rodadasNecessarias && nivel === 1) {
+        mudarNivel(2, "Nível: 2 (Médio)", "🎉 Parabéns! Nível MÉDIO desbloqueado!", "Agora são 5 cores com sequências variáveis! Você completou 7 rodadas!");
         return;
-      } else if (pontos >= 10 && nivel === 2) {
-        mudarNivel(3, "Nível: 3 (Difícil)", "� Incrível! Nível DIFÍCIL desbloqueado!", "Agora são 4 cores com sequências mais longas!");
+      } else if (rodadasPorNivel >= config.rodadasNecessarias && nivel === 2) {
+        mudarNivel(3, "Nível: 3 (Difícil)", "🌟 Incrível! Nível DIFÍCIL desbloqueado!", "Agora são 7 cores com sequências mais longas! Você completou 10 rodadas!");
+        return;
+      } else if (rodadasPorNivel >= config.rodadasNecessarias && nivel === 3) {
+        // Completou todos os níveis!
+        jogoVencido();
         return;
       }
 
@@ -568,7 +984,78 @@
       gerarPadrao();
     }
 
+    // Função para quando o jogador completar todos os níveis
+    function jogoVencido() {
+      jogoAtivo = false;
+      pararCronometro();
+      // Ao completar todos os níveis, contabilizar o último nível (+33) e arredondar se necessário
+      levelAccum += 33;
+      if (levelAccum === 99) levelAccum = 100; // arredondar para 100 pontos
+      // Atualizar pontuação exibida
+      pontos = levelAccum;
+      document.getElementById("pontos").textContent = "Pontos: " + pontos;
+      // Salvar pontuação total no histórico
+      salvarPontuacao(levelAccum);
+
+      const notificacao = document.getElementById("notificacao");
+      notificacao.innerHTML = `
+        <div class="notificacao-conteudo notificacao-vitoria">
+          <h2>🏆 PARABÉNS! 🏆</h2>
+          <p>Você completou TODOS os níveis!</p>
+          <p class="pontos-destaque">Pontuação Final: ${pontos} pontos</p>
+          <p>Você é um mestre dos padrões!</p>
+          <button class="btn-menu" onclick="voltarMenuVitoria()" tabindex="0" onfocus="narrarTexto('Voltar ao Menu Principal')">Voltar ao Menu</button>
+        </div>
+      `;
+      notificacao.style.display = "flex";
+      
+      // Tocar som de vitória especial
+      tocarSomVitoria();
+      
+      // Narrar vitória
+      if (modoDeficienciaVisual) {
+        setTimeout(() => {
+          narrarTexto(`Parabéns! Você completou todos os níveis! Pontuação final: ${pontos} pontos. Você é um mestre dos padrões! Use Tab para navegar.`);
+        }, 500);
+      }
+    }
+
+    function voltarMenuVitoria() {
+      document.getElementById("notificacao").style.display = "none";
+      voltarMenu();
+    }
+
+    // Som de vitória especial
+    function tocarSomVitoria() {
+      if (!somAtivado) return;
+      
+      // Melodia de vitória elaborada
+      const notas = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50]; // C5, D5, E5, G5, A5, C6
+      
+      notas.forEach((frequencia, index) => {
+        const oscilador = audioContext.createOscillator();
+        const ganho = audioContext.createGain();
+        
+        oscilador.connect(ganho);
+        ganho.connect(audioContext.destination);
+        
+        oscilador.frequency.setValueAtTime(frequencia, audioContext.currentTime + index * 0.2);
+        oscilador.type = 'sine';
+        
+        ganho.gain.setValueAtTime(0.4, audioContext.currentTime + index * 0.2);
+        ganho.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + index * 0.2 + 0.4);
+        
+        oscilador.start(audioContext.currentTime + index * 0.2);
+        oscilador.stop(audioContext.currentTime + index * 0.2 + 0.4);
+      });
+    }
+
     function mudarNivel(novoNivel, textoNivel, titulo, descricao) {
+      // Antes de mudar de nível, contabilizar a conclusão do nível atual (cada nível concluído = +33)
+      levelAccum += 33;
+      // Salvar pontuação parcial no histórico (33 -> 33, 33+33 -> 66, etc.)
+      salvarPontuacao(levelAccum);
+
       // Parar o jogo temporariamente
       jogoAtivo = false;
       pararCronometro();
@@ -576,12 +1063,19 @@
       // Tocar som de celebração
       tocarSomNivel();
       
+      // Narrar mudança de nível
+      if (modoDeficienciaVisual) {
+        const nivelTexto = novoNivel === 2 ? "Nível 2, Médio" : "Nível 3, Difícil";
+        narrarTexto(`Parabéns! Você passou de nível! ${nivelTexto}. Vidas mantidas: ${vidas} de 3.`);
+      }
+      
       // Desabilitar botões
       const botoesOpcoes = document.querySelectorAll(".botao-cor");
       botoesOpcoes.forEach(btn => btn.style.pointerEvents = "none");
       
-      // Atualizar nível
+      // Atualizar nível e resetar contador de rodadas
       nivel = novoNivel;
+      rodadasPorNivel = 0;
       document.getElementById("nivel").textContent = textoNivel;
       
       // Mostrar notificação visual
@@ -591,6 +1085,7 @@
           <h2>${titulo}</h2>
           <p>${descricao}</p>
           <p class="notificacao-tempo">⏱️ Tempo resetado para 60 segundos</p>
+          <p class="notificacao-vidas">❤️ Vidas mantidas: ${vidas}/3</p>
         </div>
       `;
       notificacao.style.display = "flex";
