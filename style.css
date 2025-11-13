@@ -790,8 +790,7 @@ p {
   min-height: 40px;
   padding: 10px 20px;
   border-radius: 15px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 #pontos {
@@ -884,123 +883,134 @@ p {
 /* Smartphones em modo portrait (em pé) - PRIORIDADE MÁXIMA */
 @media screen and (max-width: 480px) and (orientation: portrait) {
   body {
-    padding: 8px !important;
+    padding: 10px !important;
     min-height: 100vh !important;
     overflow-x: hidden !important;
   }
 
-  /* Tela de Início */
+  /* Tela de Início - Ajustada para viewport mobile */
   #telaInicio {
-    padding: 25px 20px !important;
-    gap: 15px !important;
+    padding: 20px 15px !important;
+    gap: 12px !important;
     max-width: 95% !important;
     border-radius: 20px !important;
+    min-height: auto !important;
   }
 
   #telaInicio h1 {
-    font-size: 3.5rem !important;
+    font-size: 2.2rem !important;
     margin: 10px 0 !important;
+    line-height: 1.2 !important;
   }
 
   .subtitulo {
-    font-size: 1.4rem !important;
-    padding: 12px 18px !important;
+    font-size: 0.95rem !important;
+    padding: 10px 15px !important;
     margin-top: 5px !important;
+    line-height: 1.3 !important;
   }
 
   .menu-principal {
-    gap: 15px !important;
+    gap: 12px !important;
     margin-top: 15px !important;
     width: 100% !important;
   }
 
   .btn-menu {
-    padding: 20px 30px !important;
-    font-size: 1.6rem !important;
+    padding: 14px 20px !important;
+    font-size: 1.1rem !important;
     min-width: 100% !important;
     width: 100% !important;
+    min-height: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .btn-som {
-    font-size: 1.4rem !important;
-    padding: 14px !important;
+    font-size: 1rem !important;
+    padding: 12px 20px !important;
+    min-height: 48px !important;
   }
 
-  /* Área do Jogo */
+  /* Área do Jogo - Otimizada para viewport mobile */
   #areaJogo {
-    padding: 15px 12px !important;
-    gap: 12px !important;
-    max-width: 96% !important;
+    padding: 10px 8px !important;
+    gap: 6px !important;
+    max-width: 98% !important;
   }
 
   #areaJogo h1 {
-    font-size: 2.8rem !important;
-    margin-bottom: 10px !important;
+    font-size: 1.8rem !important;
+    margin-bottom: 5px !important;
   }
 
   #nivel {
-    font-size: 1.5rem !important;
-    padding: 12px 20px !important;
-    margin-top: 8px !important;
+    font-size: 1rem !important;
+    padding: 8px 15px !important;
+    margin-top: 4px !important;
   }
 
   #vidas {
-    font-size: 1.5rem !important;
-    padding: 10px 18px !important;
-    margin-top: 8px !important;
+    font-size: 1.1rem !important;
+    padding: 6px 12px !important;
+    margin-top: 4px !important;
+    letter-spacing: 2px !important;
   }
 
   #cronometro {
-    font-size: 1.8rem !important;
-    padding: 15px 25px !important;
-    margin: 10px 0 !important;
+    font-size: 1.1rem !important;
+    padding: 8px 15px !important;
+    margin: 6px 0 !important;
   }
 
   #sequencia {
-    gap: 14px !important;
-    margin: 15px 0 !important;
+    gap: 8px !important;
+    margin: 10px 0 !important;
     max-width: 100% !important;
   }
 
   .bloco {
-    width: 70px !important;
-    height: 70px !important;
-    border-radius: 12px !important;
+    width: 45px !important;
+    height: 45px !important;
+    border-radius: 8px !important;
+    border-width: 2px !important;
   }
 
   #opcoes {
-    gap: 20px !important;
-    margin-top: 15px !important;
+    gap: 12px !important;
+    margin-top: 10px !important;
     max-width: 100% !important;
   }
 
   .botao-cor {
-    width: 85px !important;
-    height: 85px !important;
-    border-radius: 14px !important;
+    width: 55px !important;
+    height: 55px !important;
+    border-radius: 10px !important;
+    border-width: 2px !important;
   }
 
   .botao-cor::after {
-    font-size: 2.8rem !important;
+    font-size: 1.8rem !important;
   }
 
   #feedback {
-    font-size: 1.5rem !important;
-    padding: 15px 22px !important;
-    min-height: 55px !important;
-    margin-top: 15px !important;
-  }
-
-  #pontos {
-    font-size: 1.8rem !important;
-    padding: 15px 28px !important;
+    font-size: 1rem !important;
+    padding: 10px 15px !important;
+    min-height: 40px !important;
     margin-top: 10px !important;
   }
 
+  #pontos {
+    font-size: 1.1rem !important;
+    padding: 8px 15px !important;
+    margin-top: 6px !important;
+  }
+
   .btn-voltar {
-    font-size: 1.4rem !important;
-    padding: 15px 30px !important;
-    margin-top: 15px !important;
+    font-size: 0.95rem !important;
+    padding: 10px 20px !important;
+    margin-top: 10px !important;
   }
 
   /* Modais */
@@ -1215,6 +1225,8 @@ p {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+    width: 60%;
+
   }
 
   #telaInicio h1 {
