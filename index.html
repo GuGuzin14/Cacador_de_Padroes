@@ -149,8 +149,18 @@
     <div id="vidas">❤️ ❤️ ❤️</div>
     <div id="cronometro">⏱️ Tempo: 60s</div>
     <div id="notificacao" class="notificacao-nivel"></div>
+    <div class="rotulo-area rotulo-sequencia" aria-hidden="true">Sequência</div>
     <div id="sequencia"></div>
+    <div class="divisor-areas" aria-hidden="true"></div>
+    <div class="rotulo-area rotulo-respostas" aria-hidden="true">Respostas</div>
     <div id="opcoes"></div>
+
+    <!-- Controles móveis para acessibilidade (navegar e confirmar) -->
+    <div id="controlesAcessibilidadeMobile" class="controles-acessibilidade-mobile" aria-hidden="true">
+      <button id="btnOpcaoAnterior" class="btn-acc-nav" type="button" onclick="navegarOpcao(-1)" onfocus="narrarTexto('Opção anterior')">◀ Opção anterior</button>
+      <button id="btnConfirmarOpcao" class="btn-acc-confirmar" type="button" onclick="confirmarOpcaoSelecionada()" onfocus="narrarTexto('Confirmar opção selecionada')">✅ Confirmar</button>
+      <button id="btnOpcaoProxima" class="btn-acc-nav" type="button" onclick="navegarOpcao(1)" onfocus="narrarTexto('Próxima opção')">▶ Opção seguinte</button>
+    </div>
 
     <div id="feedback"></div>
     <div id="pontos">Pontos: 0</div>
@@ -191,6 +201,11 @@
     let somAtivado = true;
     let musicaAtivada = false;
     let modoDeficienciaVisual = false; // Modo de acessibilidade para deficientes visuais
+    let navegacaoAcessibilidadeHabilitada = false; // controla se navegação via controles móveis está ativa
+    let indiceOpcaoFocada = 0; // índice da opção atual para navegação
+    let corSelecionada = null; // cor escolhida pelo usuário (após confirmação)
+    let elementoSelecionado = null; // elemento atual selecionado via controles
+    let rodadaTravada = false; // evita múltiplas confirmações na mesma rodada
 
     // Contexto de áudio
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -369,6 +384,12 @@
         btn.style.pointerEvents = "auto";
         btn.classList.remove("botao-desabilitado");
       });
+
+      navegacaoAcessibilidadeHabilitada = true;
+      corSelecionada = null;
+      elementoSelecionado = null;
+      indiceOpcaoFocada = 0;
+      atualizarControlesAcessibilidadeMobile();
       
       // Habilitar também o botão "Voltar ao Menu"
       const btnVoltar = document.querySelector('.btn-voltar');
@@ -397,8 +418,10 @@
       
       if (modoDeficienciaVisual) {
         narrarTexto("Modo de deficiência visual ativado. Use Tab para navegar e Enter para selecionar.");
+        atualizarControlesAcessibilidadeMobile();
       } else {
         window.speechSynthesis.cancel();
+        atualizarControlesAcessibilidadeMobile();
       }
     }
 
@@ -418,7 +441,11 @@
     window.addEventListener('DOMContentLoaded', () => {
       carregarHistorico();
       carregarPreferenciasAcessibilidade();
+      atualizarControlesAcessibilidadeMobile();
     });
+
+    // Atualizar exibição dos controles móveis ao redimensionar/orientar
+    window.addEventListener('resize', atualizarControlesAcessibilidadeMobile);
 
     // Paletas de cores para diferentes tipos de daltonismo
     const paletasCores = {
@@ -511,6 +538,7 @@
       }
       
       gerarPadrao();
+      atualizarControlesAcessibilidadeMobile();
     }
 
     function voltarMenu() {
@@ -535,11 +563,16 @@
       levelAccum = 0;
       tempoRestante = 60;
       jogoAtivo = false;
+      rodadaTravada = false;
       document.getElementById("pontos").textContent = "Pontos: 0";
       document.getElementById("nivel").textContent = "Nível: 1 (Fácil)";
       document.getElementById("cronometro").textContent = "⏱️ Tempo: 60s";
       document.getElementById("feedback").textContent = "";
       atualizarVidas();
+      navegacaoAcessibilidadeHabilitada = false;
+      corSelecionada = null;
+      elementoSelecionado = null;
+      atualizarControlesAcessibilidadeMobile();
     }
 
     // Atualizar visualização das vidas
@@ -650,6 +683,9 @@
       // Desabilitar botões
       const botoesOpcoes = document.querySelectorAll(".botao-cor");
       botoesOpcoes.forEach(btn => btn.style.pointerEvents = "none");
+      navegacaoAcessibilidadeHabilitada = false;
+      elementoSelecionado = null;
+      atualizarControlesAcessibilidadeMobile();
       
       tocarSomGameOver();
       
@@ -815,6 +851,7 @@
 
     function gerarPadrao() {
       padrao = [];
+      rodadaTravada = false;
       const config = getConfigNivel(nivel);
       const coresEscolhidas = [];
 
@@ -837,6 +874,10 @@
       
       mostrarPadrao();
       mostrarOpcoes();
+      navegacaoAcessibilidadeHabilitada = false;
+      corSelecionada = null;
+      elementoSelecionado = null;
+      atualizarControlesAcessibilidadeMobile();
       
       // Narrar a sequência se modo visual estiver ativo
       if (modoDeficienciaVisual) {
@@ -886,8 +927,12 @@
           btn.setAttribute("tabindex", 10 + index);
         }
         
-        // Eventos de clique
-        btn.addEventListener("click", () => verificar(cor));
+        // Eventos de clique / seleção
+        if (modoDeficienciaVisual) {
+          btn.addEventListener("click", () => selecionarElemento(btn));
+        } else {
+          btn.addEventListener("click", () => verificar(cor));
+        }
         
         // Navegação por teclado
         btn.addEventListener("focus", () => {
@@ -897,7 +942,20 @@
         btn.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            verificar(cor);
+            if (modoDeficienciaVisual) {
+              // Em desktop: Enter primeiro seleciona (narra), Enter novamente confirma
+              if (!isMobileViewport()) {
+                if (elementoSelecionado === btn && corSelecionada === cor) {
+                  verificar(cor);
+                } else {
+                  selecionarElemento(btn);
+                }
+              } else {
+                selecionarElemento(btn);
+              }
+            } else {
+              verificar(cor);
+            }
           }
         });
         
@@ -916,13 +974,14 @@
     }
 
     function verificar(cor) {
-      if (!jogoAtivo) return; // Ignorar cliques se o jogo não estiver ativo
+      if (!jogoAtivo || rodadaTravada) return; // Ignorar cliques se o jogo não estiver ativo ou já processado
       
       const feedback = document.getElementById("feedback");
       
       // Desabilitar botões temporariamente
       const botoesOpcoes = document.querySelectorAll(".botao-cor");
       botoesOpcoes.forEach(btn => btn.style.pointerEvents = "none");
+      rodadaTravada = true;
       
       if (cor === proximaCor) {
         feedback.style.color = "green";
@@ -959,6 +1018,79 @@
           novaRodada();
         }
       }, 1500);
+    }
+
+    // ===== Navegação e confirmação no modo de acessibilidade =====
+    function isMobileViewport() {
+      return window.innerWidth <= 820 && window.innerHeight <= 900;
+    }
+
+    function atualizarControlesAcessibilidadeMobile() {
+      const container = document.getElementById("controlesAcessibilidadeMobile");
+      if (!container) return;
+      const deveMostrar = modoDeficienciaVisual && jogoAtivo && isMobileViewport();
+      container.style.display = deveMostrar ? "flex" : "none";
+      container.setAttribute("aria-hidden", deveMostrar ? "false" : "true");
+
+      const botoesControladores = container.querySelectorAll("button");
+      botoesControladores.forEach(btn => {
+        btn.disabled = !(deveMostrar && navegacaoAcessibilidadeHabilitada);
+      });
+    }
+
+    function obterElementosNavegacao() {
+      const elementos = Array.from(document.querySelectorAll(".botao-cor"));
+      const voltar = document.querySelector('.btn-voltar');
+      if (voltar) elementos.push(voltar);
+      return elementos;
+    }
+
+    function limparSelecaoAnterior() {
+      const marcados = document.querySelectorAll('.botao-selecionado');
+      marcados.forEach(el => el.classList.remove('botao-selecionado'));
+    }
+
+    function selecionarElemento(elemento) {
+      if (!modoDeficienciaVisual || !navegacaoAcessibilidadeHabilitada || !elemento) return;
+      limparSelecaoAnterior();
+      elementoSelecionado = elemento;
+
+      const cor = elemento.getAttribute("data-cor");
+      if (cor) {
+        corSelecionada = cor;
+        elemento.classList.add("botao-selecionado");
+        narrarTexto(`${coresEmPortugues[cor]}. Toque confirmar para escolher.`);
+      } else if (elemento.classList.contains('btn-voltar')) {
+        corSelecionada = null;
+        elemento.classList.add("botao-selecionado");
+        narrarTexto("Voltar ao menu. Toque confirmar para voltar.");
+      }
+    }
+
+    function navegarOpcao(delta) {
+      if (!modoDeficienciaVisual || !navegacaoAcessibilidadeHabilitada) return;
+      const elementos = obterElementosNavegacao();
+      if (!elementos.length) return;
+      indiceOpcaoFocada = (indiceOpcaoFocada + delta + elementos.length) % elementos.length;
+      const alvo = elementos[indiceOpcaoFocada];
+      alvo.focus();
+      selecionarElemento(alvo);
+    }
+
+    function confirmarOpcaoSelecionada() {
+      if (!modoDeficienciaVisual || !navegacaoAcessibilidadeHabilitada) return;
+      if (!elementoSelecionado) {
+        narrarTexto("Nenhuma opção selecionada. Use anterior ou próximo para escolher.");
+        return;
+      }
+
+      const cor = elementoSelecionado.getAttribute("data-cor");
+      if (cor) {
+        verificar(cor);
+      } else if (elementoSelecionado.classList.contains('btn-voltar')) {
+        narrarTexto("Voltando ao menu principal.");
+        elementoSelecionado.click();
+      }
     }
 
     function novaRodada() {
