@@ -64,6 +64,7 @@
         <p class="info-modo-visual" id="infoModoVisual" style="display: none;">
           ✓ Use <strong>Tab</strong> para navegar entre as opções<br>
           ✓ Use <strong>Enter</strong> para selecionar<br>
+          ✓ Use os <strong>Botões</strong> para selecionar no modo mobile<br>
           ✓ A voz narrará cada opção e a sequência de cores
         </p>
       </div>
@@ -136,6 +137,7 @@
         
         <h3>♿ Acessibilidade</h3>
         <p>Use as configurações para ativar modos especiais para daltonismo!</p>
+        <p>e tambem para deficientes visuais!</p>
       </div>
       
       <button class="btn-menu" onclick="fecharManual()" tabindex="0" onfocus="narrarTexto('Entendi, fechar manual')">Entendi!</button>
@@ -155,13 +157,6 @@
     <div class="rotulo-area rotulo-respostas" aria-hidden="true">Respostas</div>
     <div id="opcoes"></div>
 
-    <!-- Controles móveis para acessibilidade (navegar e confirmar) -->
-    <div id="controlesAcessibilidadeMobile" class="controles-acessibilidade-mobile" aria-hidden="true">
-      <button id="btnOpcaoAnterior" class="btn-acc-nav" type="button" onclick="navegarOpcao(-1)" onfocus="narrarTexto('Opção anterior')">◀ Opção anterior</button>
-      <button id="btnConfirmarOpcao" class="btn-acc-confirmar" type="button" onclick="confirmarOpcaoSelecionada()" onfocus="narrarTexto('Confirmar opção selecionada')">✅ Confirmar</button>
-      <button id="btnOpcaoProxima" class="btn-acc-nav" type="button" onclick="navegarOpcao(1)" onfocus="narrarTexto('Próxima opção')">▶ Opção seguinte</button>
-    </div>
-
     <div id="feedback"></div>
     <div id="pontos">Pontos: 0</div>
 
@@ -179,6 +174,13 @@
       <p class="gameover-mensagem">🎮 Tente novamente e supere seu recorde!</p>
       <button class="btn-menu btn-gameover" onclick="fecharGameOver()" tabindex="0" onfocus="narrarTexto('Voltar ao Menu Principal')">Voltar ao Menu</button>
     </div>
+  </div>
+
+  <!-- Controles móveis para acessibilidade (disponíveis em todas as telas) -->
+  <div id="controlesAcessibilidadeMobile" class="controles-acessibilidade-mobile" aria-hidden="true">
+    <button id="btnOpcaoAnterior" class="btn-acc-nav" type="button" onclick="navegarOpcao(-1)" onfocus="narrarTexto('Opção anterior')">◀ Opção anterior</button>
+    <button id="btnConfirmarOpcao" class="btn-acc-confirmar" type="button" onclick="confirmarOpcaoSelecionada()" onfocus="narrarTexto('Confirmar opção selecionada')">✅ Confirmar</button>
+    <button id="btnOpcaoProxima" class="btn-acc-nav" type="button" onclick="navegarOpcao(1)" onfocus="narrarTexto('Próxima opção')">▶ Opção seguinte</button>
   </div>
 
   <script>
@@ -340,13 +342,22 @@
 
     // ===== FUNÇÕES DE NARRAÇÃO POR VOZ (Web Speech API) =====
     
+    function removerEmojis(texto) {
+      // Remove emojis e outros símbolos Unicode especiais
+      return texto.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]|[\u{1F100}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F910}-\u{1F96B}]|[\u{1F980}-\u{1F9E0}]/gu, '').trim();
+    }
+
     function narrarTexto(texto, callback) {
       if (!modoDeficienciaVisual) return;
+      
+      // Remover emojis do texto antes de narrar
+      const textoLimpo = removerEmojis(texto);
+      if (!textoLimpo) return; // Se após remover emojis não sobrou nada, não narrar
       
       // Cancelar qualquer narração em andamento
       window.speechSynthesis.cancel();
       
-      const utterance = new SpeechSynthesisUtterance(texto);
+      const utterance = new SpeechSynthesisUtterance(textoLimpo);
       utterance.lang = 'pt-BR';
       utterance.rate = 0.9; // Velocidade de fala
       utterance.pitch = 1.0;
@@ -385,11 +396,13 @@
         btn.classList.remove("botao-desabilitado");
       });
 
-      navegacaoAcessibilidadeHabilitada = true;
+      // Resetar variáveis ANTES de habilitar navegação
       corSelecionada = null;
       elementoSelecionado = null;
       indiceOpcaoFocada = 0;
-      atualizarControlesAcessibilidadeMobile();
+      
+      // Agora habilitar a navegação
+      navegacaoAcessibilidadeHabilitada = true;
       
       // Habilitar também o botão "Voltar ao Menu"
       const btnVoltar = document.querySelector('.btn-voltar');
@@ -399,10 +412,23 @@
         btnVoltar.style.opacity = "1";
       }
       
-      // Focar no primeiro botão
+      // Focar e selecionar o primeiro botão automaticamente
       setTimeout(() => {
         const primeiroBotao = document.querySelector('.botao-cor');
-        if (primeiroBotao) primeiroBotao.focus();
+        if (primeiroBotao) {
+          primeiroBotao.focus();
+          // Selecionar automaticamente a primeira opção
+          limparSelecaoAnterior();
+          elementoSelecionado = primeiroBotao;
+          const cor = primeiroBotao.getAttribute("data-cor");
+          if (cor) {
+            corSelecionada = cor;
+            primeiroBotao.classList.add("botao-selecionado");
+            narrarTexto(`${coresEmPortugues[cor]}. Toque confirmar para escolher.`);
+          }
+        }
+        // Atualizar controles DEPOIS de selecionar
+        atualizarControlesAcessibilidadeMobile();
       }, 100);
     }
 
@@ -442,6 +468,19 @@
       carregarHistorico();
       carregarPreferenciasAcessibilidade();
       atualizarControlesAcessibilidadeMobile();
+      
+      // Se modo visual estiver ativo e for mobile, selecionar primeiro botão
+      if (modoDeficienciaVisual && isMobileViewport()) {
+        setTimeout(() => {
+          const primeiroBotao = document.querySelector('.btn-menu');
+          if (primeiroBotao) {
+            indiceOpcaoFocada = 0;
+            elementoSelecionado = primeiroBotao;
+            limparSelecaoAnterior();
+            primeiroBotao.classList.add("botao-selecionado");
+          }
+        }, 500);
+      }
     });
 
     // Atualizar exibição dos controles móveis ao redimensionar/orientar
@@ -548,9 +587,24 @@
       resetarJogo();
       tocarSomClick();
       
+      // Atualizar controles de acessibilidade mobile
+      atualizarControlesAcessibilidadeMobile();
+      
       if (modoDeficienciaVisual) {
         setTimeout(() => {
           narrarTexto("Voltou ao menu principal. Use Tab para navegar entre as opções.");
+          // Selecionar automaticamente o primeiro botão do menu
+          if (isMobileViewport()) {
+            const primeiroBotao = document.querySelector('.btn-menu');
+            if (primeiroBotao) {
+              indiceOpcaoFocada = 0;
+              elementoSelecionado = primeiroBotao;
+              limparSelecaoAnterior();
+              primeiroBotao.classList.add("botao-selecionado");
+              const textoBtn = primeiroBotao.textContent.trim();
+              narrarTexto(`${textoBtn}. Toque confirmar para selecionar.`);
+            }
+          }
         }, 300);
       }
     }
@@ -737,6 +791,15 @@
       if (modoDeficienciaVisual) {
         setTimeout(() => {
           narrarTexto("Configurações abertas. Use Tab para navegar entre as opções.");
+          
+          // Se estiver em mobile, resetar navegação e selecionar primeiro elemento
+          if (isMobileViewport()) {
+            const elementos = obterElementosNavegacao();
+            if (elementos.length > 0) {
+              indiceAtualNavegacao = 0;
+              selecionarElemento(elementos[0]);
+            }
+          }
         }, 300);
       }
     }
@@ -744,6 +807,17 @@
     function fecharConfiguracoes() {
       document.getElementById("modalConfiguracoes").style.display = "none";
       tocarSomClick();
+      
+      // Se estiver em mobile e modo acessibilidade, resetar navegação para o contexto anterior
+      if (modoDeficienciaVisual && isMobileViewport()) {
+        setTimeout(() => {
+          const elementos = obterElementosNavegacao();
+          if (elementos.length > 0) {
+            indiceAtualNavegacao = 0;
+            selecionarElemento(elementos[0]);
+          }
+        }, 100);
+      }
     }
 
     function abrirManual() {
@@ -753,6 +827,15 @@
       if (modoDeficienciaVisual) {
         setTimeout(() => {
           narrarTexto("Manual de instruções aberto. Use Tab para navegar.");
+          
+          // Se estiver em mobile, resetar navegação e selecionar primeiro elemento
+          if (isMobileViewport()) {
+            const elementos = obterElementosNavegacao();
+            if (elementos.length > 0) {
+              indiceAtualNavegacao = 0;
+              selecionarElemento(elementos[0]);
+            }
+          }
         }, 300);
       }
     }
@@ -760,6 +843,17 @@
     function fecharManual() {
       document.getElementById("modalManual").style.display = "none";
       tocarSomClick();
+      
+      // Se estiver em mobile e modo acessibilidade, resetar navegação para o contexto anterior
+      if (modoDeficienciaVisual && isMobileViewport()) {
+        setTimeout(() => {
+          const elementos = obterElementosNavegacao();
+          if (elementos.length > 0) {
+            indiceAtualNavegacao = 0;
+            selecionarElemento(elementos[0]);
+          }
+        }, 100);
+      }
     }
 
     function abrirHistorico() {
@@ -809,6 +903,26 @@
             ? "Histórico de partidas vazio. Nenhuma partida jogada ainda."
             : `Histórico de partidas. Total de ${historicoPartidas.length} partida${historicoPartidas.length > 1 ? 's' : ''} salva${historicoPartidas.length > 1 ? 's' : ''}. Use Tab para navegar.`;
           narrarTexto(mensagem);
+          
+          // Se estiver em mobile, resetar navegação e selecionar primeiro elemento
+          if (isMobileViewport()) {
+            const elementos = obterElementosNavegacao();
+            if (elementos.length > 0) {
+      
+      // Se estiver em mobile e modo acessibilidade, resetar navegação para o contexto anterior
+      if (modoDeficienciaVisual && isMobileViewport()) {
+        setTimeout(() => {
+          const elementos = obterElementosNavegacao();
+          if (elementos.length > 0) {
+            indiceAtualNavegacao = 0;
+            selecionarElemento(elementos[0]);
+          }
+        }, 100);
+      }
+              indiceAtualNavegacao = 0;
+              selecionarElemento(elementos[0]);
+            }
+          }
         }, 300);
       }
     }
@@ -1028,21 +1142,110 @@
     function atualizarControlesAcessibilidadeMobile() {
       const container = document.getElementById("controlesAcessibilidadeMobile");
       if (!container) return;
-      const deveMostrar = modoDeficienciaVisual && jogoAtivo && isMobileViewport();
+      
+      // Mostrar controles se modo visual ativo, mobile e (no jogo OU no menu principal)
+      const telaInicioVisivel = document.getElementById("telaInicio").style.display !== "none";
+      const deveMostrar = modoDeficienciaVisual && isMobileViewport() && (jogoAtivo || telaInicioVisivel);
+      
       container.style.display = deveMostrar ? "flex" : "none";
       container.setAttribute("aria-hidden", deveMostrar ? "false" : "true");
 
       const botoesControladores = container.querySelectorAll("button");
       botoesControladores.forEach(btn => {
-        btn.disabled = !(deveMostrar && navegacaoAcessibilidadeHabilitada);
+        // Habilitar botões se estiver no jogo com navegação habilitada OU se estiver no menu
+        const habilitar = deveMostrar && (navegacaoAcessibilidadeHabilitada || telaInicioVisivel);
+        btn.disabled = !habilitar;
       });
     }
 
     function obterElementosNavegacao() {
-      const elementos = Array.from(document.querySelectorAll(".botao-cor"));
-      const voltar = document.querySelector('.btn-voltar');
-      if (voltar) elementos.push(voltar);
-      return elementos;
+      // Verificar se há um modal aberto
+      const modalConfiguracoes = document.getElementById("modalConfiguracoes");
+      const modalHistorico = document.getElementById("modalHistorico");
+      const modalManual = document.getElementById("modalManual");
+      const modalGameOver = document.getElementById("modalGameOver");
+      
+      // Se modal de configurações está aberto
+      if (modalConfiguracoes && modalConfiguracoes.style.display === "flex") {
+        const elementos = [];
+        const modalContent = modalConfiguracoes.querySelector('.modal-conteudo');
+        if (modalContent) {
+          // Adicionar inputs radio de daltonismo (apenas deste modal)
+          elementos.push(...Array.from(modalContent.querySelectorAll('input[type="radio"]')));
+          // Adicionar checkbox de deficiência visual (apenas deste modal)
+          elementos.push(...Array.from(modalContent.querySelectorAll('input[type="checkbox"]')));
+          // Adicionar apenas os botões e fechar deste modal específico
+          const botoes = Array.from(modalContent.querySelectorAll('.btn-menu, .fechar')).filter(el => {
+            // Garantir que o elemento está visível e é filho direto deste modal
+            return el.closest('.modal') === modalConfiguracoes;
+          });
+          elementos.push(...botoes);
+        }
+        return elementos;
+      }
+      
+      // Se modal de histórico está aberto
+      if (modalHistorico && modalHistorico.style.display === "flex") {
+        const elementos = [];
+        const modalContent = modalHistorico.querySelector('.modal-conteudo');
+        if (modalContent) {
+          // Adicionar apenas os botões deste modal específico
+          const botoes = Array.from(modalContent.querySelectorAll('.btn-menu, .fechar')).filter(el => {
+            return el.closest('.modal') === modalHistorico;
+          });
+          elementos.push(...botoes);
+        }
+        return elementos;
+      }
+      
+      // Se modal de manual está aberto
+      if (modalManual && modalManual.style.display === "flex") {
+        const elementos = [];
+        const modalContent = modalManual.querySelector('.modal-conteudo');
+        if (modalContent) {
+          // Adicionar apenas os botões deste modal específico
+          const botoes = Array.from(modalContent.querySelectorAll('.btn-menu, .fechar')).filter(el => {
+            return el.closest('.modal') === modalManual;
+          });
+          elementos.push(...botoes);
+        }
+        return elementos;
+      }
+      
+      // Se modal de game over está aberto
+      if (modalGameOver && modalGameOver.style.display === "flex") {
+        const elementos = [];
+        const modalContent = modalGameOver.querySelector('.modal-conteudo');
+        if (modalContent) {
+          const botoes = Array.from(modalContent.querySelectorAll('.btn-menu')).filter(el => {
+            return el.closest('.modal') === modalGameOver;
+          });
+          elementos.push(...botoes);
+        }
+        return elementos;
+      }
+      
+      // Se estiver na tela inicial (menu principal)
+      const telaInicio = document.getElementById("telaInicio");
+      if (telaInicio && telaInicio.style.display !== "none") {
+        // Pegar apenas os botões do menu principal (não dos modais)
+        const menuPrincipal = telaInicio.querySelector('.menu-principal');
+        if (menuPrincipal) {
+          return Array.from(menuPrincipal.querySelectorAll('.btn-menu'));
+        }
+        return [];
+      }
+      
+      // Se estiver no jogo, navegar pelas cores e botão voltar
+      const areaJogo = document.getElementById("areaJogo");
+      if (areaJogo && areaJogo.style.display !== "none") {
+        const elementos = Array.from(areaJogo.querySelectorAll(".botao-cor"));
+        const voltar = areaJogo.querySelector('.btn-voltar');
+        if (voltar) elementos.push(voltar);
+        return elementos;
+      }
+      
+      return [];
     }
 
     function limparSelecaoAnterior() {
@@ -1051,7 +1254,14 @@
     }
 
     function selecionarElemento(elemento) {
-      if (!modoDeficienciaVisual || !navegacaoAcessibilidadeHabilitada || !elemento) return;
+      if (!modoDeficienciaVisual || !elemento) return;
+      
+      const telaInicioVisivel = document.getElementById("telaInicio").style.display !== "none";
+      const modalAberto = document.querySelector('.modal[style*="display: flex"]');
+      
+      // Permitir seleção no menu, no jogo com navegação habilitada, ou em modais
+      if (!telaInicioVisivel && !navegacaoAcessibilidadeHabilitada && !modalAberto) return;
+      
       limparSelecaoAnterior();
       elementoSelecionado = elemento;
 
@@ -1064,11 +1274,45 @@
         corSelecionada = null;
         elemento.classList.add("botao-selecionado");
         narrarTexto("Voltar ao menu. Toque confirmar para voltar.");
+      } else if (elemento.classList.contains('btn-menu')) {
+        corSelecionada = null;
+        elemento.classList.add("botao-selecionado");
+        const textoBtn = elemento.textContent.trim();
+        narrarTexto(`${textoBtn}. Toque confirmar para selecionar.`);
+      } else if (elemento.classList.contains('fechar')) {
+        corSelecionada = null;
+        elemento.classList.add("botao-selecionado");
+        narrarTexto("Fechar. Toque confirmar para fechar.");
+      } else if (elemento.tagName === 'INPUT') {
+        corSelecionada = null;
+        // Para inputs, marcar o label pai se existir
+        const label = elemento.closest('label');
+        if (label) {
+          label.classList.add("botao-selecionado");
+        } else {
+          elemento.classList.add("botao-selecionado");
+        }
+        
+        if (elemento.type === 'radio') {
+          const textoLabel = elemento.closest('label')?.textContent.trim() || elemento.value;
+          narrarTexto(`${textoLabel}. Toque confirmar para selecionar.`);
+        } else if (elemento.type === 'checkbox') {
+          const textoLabel = elemento.closest('label')?.textContent.trim() || 'Checkbox';
+          const estado = elemento.checked ? 'ativado' : 'desativado';
+          narrarTexto(`${textoLabel}. Atualmente ${estado}. Toque confirmar para alternar.`);
+        }
       }
     }
 
     function navegarOpcao(delta) {
-      if (!modoDeficienciaVisual || !navegacaoAcessibilidadeHabilitada) return;
+      if (!modoDeficienciaVisual) return;
+      
+      const telaInicioVisivel = document.getElementById("telaInicio").style.display !== "none";
+      const modalAberto = document.querySelector('.modal[style*="display: flex"]');
+      
+      // Permitir navegação no menu, no jogo com navegação habilitada, ou em modais
+      if (!telaInicioVisivel && !navegacaoAcessibilidadeHabilitada && !modalAberto) return;
+      
       const elementos = obterElementosNavegacao();
       if (!elementos.length) return;
       indiceOpcaoFocada = (indiceOpcaoFocada + delta + elementos.length) % elementos.length;
@@ -1078,7 +1322,14 @@
     }
 
     function confirmarOpcaoSelecionada() {
-      if (!modoDeficienciaVisual || !navegacaoAcessibilidadeHabilitada) return;
+      if (!modoDeficienciaVisual) return;
+      
+      const telaInicioVisivel = document.getElementById("telaInicio").style.display !== "none";
+      const modalAberto = document.querySelector('.modal[style*="display: flex"]');
+      
+      // Permitir confirmação no menu, no jogo com navegação habilitada, ou em modais
+      if (!telaInicioVisivel && !navegacaoAcessibilidadeHabilitada && !modalAberto) return;
+      
       if (!elementoSelecionado) {
         narrarTexto("Nenhuma opção selecionada. Use anterior ou próximo para escolher.");
         return;
@@ -1090,6 +1341,21 @@
       } else if (elementoSelecionado.classList.contains('btn-voltar')) {
         narrarTexto("Voltando ao menu principal.");
         elementoSelecionado.click();
+      } else if (elementoSelecionado.classList.contains('btn-menu')) {
+        narrarTexto("Selecionando opção.");
+        elementoSelecionado.click();
+      } else if (elementoSelecionado.classList.contains('fechar')) {
+        narrarTexto("Fechando.");
+        elementoSelecionado.click();
+      } else if (elementoSelecionado.tagName === 'INPUT') {
+        if (elementoSelecionado.type === 'radio') {
+          narrarTexto("Opção selecionada.");
+          elementoSelecionado.click();
+        } else if (elementoSelecionado.type === 'checkbox') {
+          elementoSelecionado.click();
+          const estado = elementoSelecionado.checked ? 'ativado' : 'desativado';
+          narrarTexto(`Alternado para ${estado}.`);
+        }
       }
     }
 
